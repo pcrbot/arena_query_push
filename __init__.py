@@ -106,10 +106,10 @@ async def on_query_arena(bot,ev):
     pass
 @sv.scheduled_job('cron', second="*/20")
 async def _on_arena_schedule():
-    await on_arena_schedule()
+    await ___on_arena_schedule()
 @sv.scheduled_job('cron', second="*/30")
 async def __on_arena_schedule():
-    await on_arena_schedule()
+    await ___on_arena_schedule()
 @sv.on_fullmatch('停止竞技场订阅')
 async def disable_arena_sub(bot,ev):
     if not Inited:
@@ -210,7 +210,7 @@ async def on_arena_schedule():
         Init()
     for user in binds["arena_bind"]:
         user = str(user)
-        await asyncio.sleep(1.5)
+
         try:
             res = await getprofile(int(binds["arena_bind"][user]["id"]))
             res = res["user_info"]
@@ -226,7 +226,7 @@ async def on_arena_schedule():
                         msg = "[CQ:at,qq={uid}]您的竞技场排名发生变化：{origin_rank}->{new_rank}".format(uid=binds["arena_bind"][user]["uid"], origin_rank=str(origin_rank), new_rank=str(new_rank))
                         arena_ranks[user] = new_rank
                         await bot.send_group_msg(group_id=int(binds["arena_bind"][user]["gid"]),message=msg)
-                        await asyncio.sleep(1.5)
+                
             if binds["arena_bind"][user]["grand_arena_on"]:
                 if not user in grand_arena_ranks:
                     grand_arena_ranks[user] = res["grand_arena_rank"]
@@ -239,9 +239,54 @@ async def on_arena_schedule():
                         msg = "[CQ:at,qq={uid}]您的公主竞技场排名发生变化：{origin_rank}->{new_rank}".format(uid=binds["arena_bind"][user]["uid"], origin_rank=str(origin_rank), new_rank=str(new_rank))
                         grand_arena_ranks[user] = new_rank
                         await bot.send_group_msg(group_id=int(binds["arena_bind"][user]["gid"]),message=msg)
-                        await asyncio.sleep(1.5)
+                
         except:
             sv.logger.info("对{id}的检查出错".format(id=binds["arena_bind"][user]["id"]))
+
+
+async def ___on_arena_schedule():
+    global arena_ranks
+    global grand_arena_ranks
+    bot = nonebot.get_bot()
+    if not Inited:
+        Init()
+    for user in binds["arena_bind"]:
+        user = str(user)
+
+        try:
+            res = await getprofile(int(binds["arena_bind"][user]["id"]))
+            res = res["user_info"]
+            if binds["arena_bind"][user]["arena_on"]:
+                if not user in arena_ranks:
+                    arena_ranks[user] = res["arena_rank"]
+                else:
+                    origin_rank = arena_ranks[user]
+                    new_rank = res["arena_rank"]
+                    if origin_rank >= new_rank:  # 不动或者上升
+                        arena_ranks[user] = new_rank
+                    else:
+                        msg = "[CQ:at,qq={uid}]您的竞技场排名发生变化：{origin_rank}->{new_rank}".format(
+                            uid=binds["arena_bind"][user]["uid"], origin_rank=str(origin_rank), new_rank=str(new_rank))
+                        arena_ranks[user] = new_rank
+                        #await bot.send_group_msg(group_id=int(binds["arena_bind"][user]["gid"]), message=msg)
+                
+            if binds["arena_bind"][user]["grand_arena_on"]:
+                if not user in grand_arena_ranks:
+                    grand_arena_ranks[user] = res["grand_arena_rank"]
+                else:
+                    origin_rank = grand_arena_ranks[user]
+                    new_rank = res["grand_arena_rank"]
+                    if origin_rank >= new_rank:  # 不动或者上升
+                        grand_arena_ranks[user] = new_rank
+                    else:
+                        msg = "[CQ:at,qq={uid}]您的公主竞技场排名发生变化：{origin_rank}->{new_rank}".format(
+                            uid=binds["arena_bind"][user]["uid"], origin_rank=str(origin_rank), new_rank=str(new_rank))
+                        grand_arena_ranks[user] = new_rank
+                        #await bot.send_group_msg(group_id=int(binds["arena_bind"][user]["gid"]), message=msg)
+                
+        except:
+            sv.logger.info("对{id}的检查出错".format(
+                id=binds["arena_bind"][user]["id"]))
 @sv.on_notice('group_decrease.leave')
 async def leave_notice(session: NoticeSession):
     if not Inited:
